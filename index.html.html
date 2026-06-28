@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#2A2D3E">
+<title>Voicd — Communication Aid</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;overflow:hidden;touch-action:manipulation}
+html{height:-webkit-fill-available}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  display:flex;flex-direction:column;
+  height:100vh;height:100dvh;
+  background:#FEF9F5;color:#2A2D3E;
+}
+
+/* ── Nurse flash ─────────────────────────────────────────── */
+#nurse-flash{
+  position:fixed;inset:0;background:#C62828;
+  display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:20px;
+  z-index:9999;cursor:pointer;
+}
+#nurse-flash.show{display:flex}
+#nf-emoji{font-size:90px;animation:pulse 0.9s ease-in-out infinite}
+#nf-text{color:#fff;font-size:clamp(44px,8vw,80px);font-weight:900;letter-spacing:2px;text-align:center;line-height:1.1}
+#nf-sub{color:rgba(255,255,255,0.55);font-size:18px;font-weight:500;margin-top:8px}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+
+/* ── Header ──────────────────────────────────────────────── */
+#hdr{
+  background:#2A2D3E;padding:10px 14px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:10px;flex-shrink:0;
+}
+.brand-name{color:#fff;font-size:22px;font-weight:900;letter-spacing:3px}
+.brand-sub{color:rgba(255,255,255,0.4);font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase}
+.hdr-r{display:flex;align-items:center;gap:8px}
+#edit-btn{
+  background:rgba(255,255,255,0.12);color:rgba(255,255,255,0.85);
+  border:1.5px solid rgba(255,255,255,0.25);border-radius:10px;
+  padding:9px 14px;font-size:14px;font-weight:700;cursor:pointer;white-space:nowrap;
+  font-family:inherit;
+}
+#edit-btn.on{background:#E8704A;border-color:#E8704A;color:#fff}
+#nurse-btn{
+  background:#E53935;color:#fff;border:none;border-radius:12px;
+  padding:13px 18px;font-size:17px;font-weight:900;cursor:pointer;
+  box-shadow:0 4px 16px rgba(229,57,53,0.5);
+  display:flex;align-items:center;gap:7px;
+  white-space:nowrap;letter-spacing:0.3px;font-family:inherit;
+}
+#nurse-btn:active{background:#B71C1C;transform:scale(0.97)}
+
+/* ── Edit banner ─────────────────────────────────────────── */
+#edit-banner{
+  display:none;background:#E8704A;color:#fff;
+  text-align:center;padding:8px 14px;
+  font-size:13px;font-weight:700;flex-shrink:0;line-height:1.4;
+}
+#edit-banner.show{display:block}
+
+/* ── Output bar ──────────────────────────────────────────── */
+#out-bar{
+  background:#F5EDE3;border-bottom:2px solid #E0CEBC;
+  padding:10px 14px;display:flex;align-items:center;
+  gap:10px;min-height:78px;flex-shrink:0;
+}
+#msg{
+  flex:1;font-size:clamp(20px,3.8vw,32px);font-weight:700;
+  color:#2A2D3E;line-height:1.25;word-break:break-word;
+}
+#msg.ph{color:#B8A898;font-weight:400;font-style:italic;font-size:clamp(16px,2.8vw,22px)}
+#clear-btn{
+  width:44px;height:44px;background:#E0CEBC;border:none;
+  border-radius:10px;font-size:18px;color:#8A7A6A;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+}
+#clear-btn:active{background:#CBBBA8}
+#fam-btn{
+  background:#4A90D9;color:#fff;border:none;border-radius:10px;
+  padding:11px 14px;font-size:14px;font-weight:700;cursor:pointer;
+  white-space:nowrap;flex-shrink:0;display:flex;align-items:center;gap:5px;
+  font-family:inherit;
+}
+#fam-btn:active{background:#2E6FAE}
+
+/* ── Tabs ────────────────────────────────────────────────── */
+#tabs{
+  display:flex;background:#EDE4D8;border-bottom:2px solid #E0CEBC;
+  flex-shrink:0;overflow-x:auto;scrollbar-width:none;
+}
+#tabs::-webkit-scrollbar{display:none}
+.tab{
+  flex:1;min-width:68px;padding:13px 6px 11px;border:none;background:transparent;
+  font-size:13px;font-weight:700;color:#9A8A78;cursor:pointer;
+  border-bottom:3px solid transparent;white-space:nowrap;
+  transition:color 0.15s,background 0.15s;font-family:inherit;
+}
+.tab.active{color:#E8704A;border-bottom-color:#E8704A;background:rgba(255,255,255,0.65)}
+
+/* ── Content ─────────────────────────────────────────────── */
+#content{
+  flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:14px;display:flex;flex-direction:column;
+}
+
+/* ── Phrase grid ─────────────────────────────────────────── */
+.grid{
+  flex:1;display:grid;
+  grid-template-columns:repeat(2,1fr);
+  align-content:stretch;gap:12px;
+}
+.pcard{position:relative;height:100%}
+
+.pbtn{
+  background:#fff;border:2px solid #E0CEBC;border-radius:16px;
+  padding:16px 10px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:10px;cursor:pointer;
+  min-height:110px;height:100%;width:100%;
+  box-shadow:0 2px 6px rgba(0,0,0,0.06);
+  transition:border-color 0.12s,background 0.12s,box-shadow 0.12s;
+  font-family:inherit;
+}
+.pbtn:active,.pbtn.sel{
+  background:#FFF0E8;border-color:#E8704A;
+  box-shadow:0 4px 14px rgba(232,112,74,0.25);
+}
+.edit-mode .pbtn:active{background:#E8F4FD;border-color:#4A90D9}
+.pi{font-size:36px;line-height:1}
+.pt{font-size:14px;font-weight:600;color:#2A2D3E;text-align:center;line-height:1.3}
+
+/* card edit/delete overlay */
+.card-acts{position:absolute;top:5px;right:5px;display:none;gap:4px}
+.edit-mode .card-acts{display:flex}
+.cedit,.cdel{
+  width:34px;height:34px;border:none;border-radius:8px;
+  font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+}
+.cedit{background:#4A90D9;color:#fff}
+.cdel{background:#E53935;color:#fff}
+
+/* add card */
+.add-card{display:none}
+.edit-mode .add-card{display:block}
+.add-btn{
+  background:#FFF0E8;border:2px dashed #E8704A;border-radius:16px;
+  padding:16px 10px;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:8px;cursor:pointer;
+  min-height:110px;height:100%;
+  width:100%;color:#E8704A;font-size:14px;font-weight:700;font-family:inherit;
+}
+.add-icon{font-size:30px}
+
+/* ── Keyboard ─────────────────────────────────────────────── */
+#kb{display:flex;flex-direction:column;gap:9px;user-select:none;-webkit-user-select:none}
+
+.qw-row{display:flex;gap:7px;flex-wrap:wrap}
+.qw{
+  flex:1;min-width:60px;padding:15px 4px;
+  background:#E8F4FD;border:2px solid #4A90D9;border-radius:12px;
+  font-size:15px;font-weight:800;color:#2E6FAE;cursor:pointer;
+  text-align:center;font-family:inherit;
+}
+.qw:active{background:#C4DCF0}
+
+.kb-row{display:flex;gap:5px;justify-content:center}
+.k{
+  flex:1;min-width:0;max-width:72px;height:68px;
+  background:#fff;border:2px solid #D8CBB8;border-radius:11px;
+  font-size:22px;font-weight:700;color:#2A2D3E;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 3px 0 #C8BBAA;
+  transition:transform 0.07s,box-shadow 0.07s;
+  font-family:inherit;
+}
+.k:active{transform:translateY(2px);box-shadow:none;background:#F0E8DC}
+.k-space{flex:3;max-width:none;font-size:14px;font-weight:700;color:#8A7A6A}
+.k-back{flex:1.6;max-width:100px;background:#FFF0E8;border-color:#D8CBB8;font-size:24px}
+.k-clr{flex:1.3;max-width:88px;font-size:12px;font-weight:800;color:#E8704A;background:#FFF0E8;border-color:#E8704A}
+
+/* ── Family overlay ───────────────────────────────────────── */
+#fam-ov{
+  position:fixed;inset:0;background:#141622;
+  display:none;align-items:center;justify-content:center;
+  z-index:800;padding:40px 30px;cursor:pointer;
+}
+#fam-ov.show{display:flex}
+#fam-txt{
+  color:#fff;font-size:clamp(54px,10vw,120px);
+  font-weight:900;text-align:center;line-height:1.2;word-break:break-word;
+}
+#fam-hint{
+  position:absolute;bottom:28px;left:50%;transform:translateX(-50%);
+  color:rgba(255,255,255,0.22);font-size:15px;font-weight:500;white-space:nowrap;
+}
+
+/* ── Modal ────────────────────────────────────────────────── */
+#modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,0.52);
+  display:none;align-items:center;justify-content:center;
+  z-index:600;padding:20px;
+}
+#modal-bg.show{display:flex}
+.modal{
+  background:#fff;border-radius:20px;padding:26px;
+  width:100%;max-width:480px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.3);
+}
+.modal h2{font-size:20px;font-weight:800;margin-bottom:18px}
+.modal label{
+  display:block;font-size:11px;font-weight:700;color:#9A8A78;
+  text-transform:uppercase;letter-spacing:0.6px;margin-bottom:7px;
+}
+.modal input{
+  width:100%;padding:13px 14px;border:2px solid #E0CEBC;
+  border-radius:12px;font-size:17px;color:#2A2D3E;
+  margin-bottom:14px;font-family:inherit;outline:none;
+}
+.modal input:focus{border-color:#E8704A}
+.mhint{font-size:12px;color:#B8A898;margin-top:-10px;margin-bottom:14px}
+.modal-btns{display:flex;gap:10px;margin-top:4px}
+.mbtn{
+  flex:1;padding:14px;border:none;border-radius:12px;
+  font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;
+}
+.mbtn-c{background:#F0E4D8;color:#9A8A78}
+.mbtn-s{background:#E8704A;color:#fff}
+.mbtn-s:active{background:#C05A38}
+
+/* ── Responsive ───────────────────────────────────────────── */
+/* Desktop: 3 columns */
+@media(min-width:900px){
+  .grid{grid-template-columns:repeat(3,1fr);gap:14px}
+  .pi{font-size:42px}
+  .pt{font-size:16px}
+  .k{height:76px;font-size:26px}
+  #msg{font-size:clamp(24px,3.5vw,36px)}
+}
+@media(max-width:380px){
+  .k{height:58px;font-size:19px}
+  .qw{font-size:13px;padding:12px 4px}
+  .pi{font-size:30px}
+  .pt{font-size:13px}
+}
+/* Landscape on small devices: keep 2 cols but squish vertically */
+@media(orientation:landscape)and(max-height:520px){
+  .pbtn{min-height:80px;padding:10px 8px}
+  .pi{font-size:26px}
+  .pt{font-size:12px}
+  .k{height:52px;font-size:18px}
+  #out-bar{min-height:56px;padding:7px 12px}
+}
+</style>
+</head>
+<body>
+
+<!-- NURSE FLASH -->
+<div id="nurse-flash" onclick="dismissNurse()">
+  <div id="nf-emoji">🚨</div>
+  <div id="nf-text">CALLING NURSE</div>
+  <div id="nf-sub">Tap anywhere to dismiss</div>
+</div>
+
+<!-- HEADER -->
+<header id="hdr">
+  <div>
+    <div class="brand-name">VOICD</div>
+    <div class="brand-sub">Communication aid</div>
+  </div>
+  <div class="hdr-r">
+    <button id="edit-btn" onclick="toggleEdit()">✏️ Edit</button>
+    <button id="nurse-btn" onclick="callNurse()">🚨 CALL NURSE</button>
+  </div>
+</header>
+
+<!-- EDIT BANNER -->
+<div id="edit-banner">✏️ EDIT MODE — tap a phrase to change it &nbsp;·&nbsp; tap ＋ to add a new one &nbsp;·&nbsp; tap Done when finished</div>
+
+<!-- OUTPUT BAR -->
+<div id="out-bar">
+  <div id="msg" class="ph">Tap a phrase to speak…</div>
+  <button id="clear-btn" onclick="clearMsg()" title="Clear">✕</button>
+  <button id="fam-btn" onclick="showFamily()">📢 Big Screen</button>
+</div>
+
+<!-- TABS -->
+<nav id="tabs">
+  <button class="tab active" data-tab="needs">Needs</button>
+  <button class="tab" data-tab="pain">Pain</button>
+  <button class="tab" data-tab="room">Room</button>
+  <button class="tab" data-tab="feelings">Feelings</button>
+  <button class="tab" data-tab="family">Family</button>
+  <button class="tab" data-tab="abc">A B C</button>
+</nav>
+
+<!-- CONTENT -->
+<div id="content"></div>
+
+<!-- FAMILY OVERLAY -->
+<div id="fam-ov" onclick="hideFamily()">
+  <div id="fam-txt"></div>
+  <div id="fam-hint">Tap anywhere to close</div>
+</div>
+
+<!-- EDIT MODAL -->
+<div id="modal-bg">
+  <div class="modal">
+    <h2 id="modal-title">Edit phrase</h2>
+    <label>Icon (emoji)</label>
+    <input id="mi-icon" type="text" maxlength="4" placeholder="💬">
+    <div class="mhint">Open your keyboard's emoji picker to choose an icon</div>
+    <label>Phrase text</label>
+    <input id="mi-text" type="text" placeholder="Type the phrase here…">
+    <div class="modal-btns">
+      <button class="mbtn mbtn-c" onclick="closeModal()">Cancel</button>
+      <button class="mbtn mbtn-s" onclick="saveModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Default phrases ────────────────────────────────────────────────────────────
+const DEFAULTS = {
+  needs:[
+    {i:'💧',t:"I'm thirsty"},
+    {i:'🔄',t:"Reposition me"},
+    {i:'🛏️',t:"Adjust my pillow"},
+    {i:'💨',t:"I need suction"},
+    {i:'⬆️',t:"Sit me up more"},
+    {i:'⬇️',t:"Lie me flatter"},
+    {i:'🧊',t:"Put a cold flannel on my head"},
+    {i:'🧴',t:"Can you wipe my face please"},
+    {i:'😴',t:"I need to rest"},
+  ],
+  pain:[
+    {i:'🔴',t:"Severe pain"},
+    {i:'🟡',t:"Some pain"},
+    {i:'✅',t:"Pain is better"},
+    {i:'💔',t:"Chest pain"},
+    {i:'🤒',t:"Sore throat"},
+    {i:'🤕',t:"Headache"},
+    {i:'🤢',t:"Feeling sick"},
+    {i:'😊',t:"No pain right now"},
+  ],
+  room:[
+    {i:'🔥',t:"Too hot"},
+    {i:'❄️',t:"Too cold"},
+    {i:'💨',t:"Move fan towards me"},
+    {i:'🌬️',t:"Move fan away"},
+    {i:'🚫',t:"Turn fan off"},
+    {i:'🔼',t:"Raise bed head"},
+    {i:'🔽',t:"Lower bed head"},
+    {i:'💡',t:"Too bright — dim lights"},
+    {i:'🔇',t:"Too noisy"},
+    {i:'📺',t:"Put TV on"},
+    {i:'📵',t:"Turn TV off"},
+    {i:'🎵',t:"Put music on"},
+  ],
+  feelings:[
+    {i:'😨',t:"I'm scared"},
+    {i:'😌',t:"I feel calm"},
+    {i:'😕',t:"I'm confused"},
+    {i:'😤',t:"I'm frustrated"},
+    {i:'🌟',t:"Feeling hopeful"},
+    {i:'😰',t:"Feeling anxious"},
+    {i:'👍',t:"I understand thank you"},
+    {i:'🔁',t:"Explain that again"},
+  ],
+  family:[
+    {i:'❤️',t:"I love you"},
+    {i:'💪',t:"I'm going to be okay"},
+    {i:'🙏',t:"Thank you for being here"},
+    {i:'🤝',t:"Hold my hand"},
+    {i:'💬',t:"Tell me about your day"},
+    {i:'🏠',t:"How is everyone at home"},
+    {i:'📰',t:"What's in the news"},
+    {i:'😄',t:"Tell me something funny"},
+    {i:'👧',t:"How are the kids"},
+    {i:'📖',t:"Read to me"},
+    {i:'⭐',t:"I'm proud of you"},
+    {i:'🤫',t:"I need a moment alone"},
+  ],
+};
+
+const KB_ROWS=[['Q','W','E','R','T','Y','U','I','O','P'],['A','S','D','F','G','H','J','K','L'],['Z','X','C','V','B','N','M']];
+const QUICK=['YES','NO','OKAY','PLEASE','SORRY','HELP'];
+
+// ── State ──────────────────────────────────────────────────────────────────────
+let phrases={};
+let curTab='needs';
+let curMsg='';
+let editOn=false;
+let modalCtx=null;
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+(function init(){
+  try{
+    const s=localStorage.getItem('voicd_v1');
+    if(s){
+      const d=JSON.parse(s);
+      phrases={};
+      for(const k of Object.keys(DEFAULTS)) phrases[k]=d[k]||cp(DEFAULTS[k]);
+    } else phrases=cp(DEFAULTS);
+  }catch(e){ phrases=cp(DEFAULTS); }
+
+  document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
+  document.getElementById('modal-bg').addEventListener('click',function(e){if(e.target===this)closeModal();});
+  document.getElementById('content').addEventListener('click',handleClick);
+
+  // Enter key in modal saves
+  document.getElementById('mi-text').addEventListener('keydown',function(e){if(e.key==='Enter')saveModal();});
+
+  switchTab('needs');
+})();
+
+function cp(x){return JSON.parse(JSON.stringify(x));}
+function save(){try{localStorage.setItem('voicd_v1',JSON.stringify(phrases));}catch(e){}}
+
+// ── Tab ────────────────────────────────────────────────────────────────────────
+function switchTab(tab){
+  curTab=tab;
+  document.querySelectorAll('.tab').forEach(b=>b.classList.toggle('active',b.dataset.tab===tab));
+  render();
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────────
+function render(){
+  const el=document.getElementById('content');
+  if(curTab==='abc'){
+    el.classList.remove('edit-mode');
+    el.innerHTML=buildKb();
+  } else {
+    el.classList.toggle('edit-mode',editOn);
+    el.innerHTML=buildGrid(curTab);
+  }
+}
+
+function buildGrid(tab){
+  const list=phrases[tab]||[];
+  let h='<div class="grid">';
+  list.forEach((p,i)=>{
+    const sel=(!editOn&&curMsg===p.t)?' sel':'';
+    h+=`<div class="pcard">
+      <button class="pbtn${sel}" data-a="sel" data-tab="${tab}" data-i="${i}">
+        <span class="pi">${p.i}</span>
+        <span class="pt">${esc(p.t)}</span>
+      </button>
+      <div class="card-acts">
+        <button class="cedit" data-a="edit" data-tab="${tab}" data-i="${i}" title="Edit">✏️</button>
+        <button class="cdel"  data-a="del"  data-tab="${tab}" data-i="${i}" title="Delete">🗑️</button>
+      </div>
+    </div>`;
+  });
+  h+=`<div class="pcard add-card">
+    <button class="add-btn" data-a="add" data-tab="${tab}">
+      <span class="add-icon">＋</span><span>Add phrase</span>
+    </button>
+  </div></div>`;
+  return h;
+}
+
+function buildKb(){
+  let h='<div id="kb"><div class="qw-row">';
+  QUICK.forEach(w=>{ h+=`<button class="qw" data-a="qw" data-w="${w}">${w}</button>`; });
+  h+='</div>';
+  KB_ROWS.forEach(row=>{
+    h+='<div class="kb-row">';
+    row.forEach(k=>{ h+=`<button class="k" data-a="key" data-k="${k}">${k}</button>`; });
+    h+='</div>';
+  });
+  h+=`<div class="kb-row">
+    <button class="k k-clr" data-a="kclr">CLEAR</button>
+    <button class="k k-space" data-a="key" data-k=" ">SPACE</button>
+    <button class="k k-back" data-a="back">⌫</button>
+  </div></div>`;
+  return h;
+}
+
+// ── Click delegation ───────────────────────────────────────────────────────────
+function handleClick(e){
+  const b=e.target.closest('[data-a]');
+  if(!b) return;
+  const a=b.dataset.a, tab=b.dataset.tab, idx=b.dataset.i!==undefined?parseInt(b.dataset.i):null;
+  if(a==='sel'){
+    if(editOn) openEdit(tab,idx);
+    else select(phrases[tab][idx].t);
+  } else if(a==='edit') openEdit(tab,idx);
+  else if(a==='del')  delPhrase(tab,idx);
+  else if(a==='add')  openAdd(tab);
+  else if(a==='key'){ curMsg+=b.dataset.k; updateBar(); }
+  else if(a==='qw'){
+    const w=b.dataset.w;
+    if(curMsg&&!curMsg.endsWith(' ')) curMsg+=' ';
+    curMsg+=w; updateBar();
+  }
+  else if(a==='back'){ curMsg=curMsg.slice(0,-1); updateBar(); }
+  else if(a==='kclr') clearMsg();
+}
+
+// ── Message ────────────────────────────────────────────────────────────────────
+function select(text){ curMsg=text; updateBar(); render(); }
+
+function clearMsg(){ curMsg=''; updateBar(); if(curTab!=='abc') render(); }
+
+function updateBar(){
+  const el=document.getElementById('msg');
+  if(curMsg){ el.textContent=curMsg; el.classList.remove('ph'); }
+  else { el.textContent='Tap a phrase to speak…'; el.classList.add('ph'); }
+}
+
+// ── Family view ────────────────────────────────────────────────────────────────
+function showFamily(){
+  if(!curMsg) return;
+  document.getElementById('fam-txt').textContent=curMsg;
+  const ov=document.getElementById('fam-ov');
+  ov.classList.add('show');
+  try{
+    const fn=ov.requestFullscreen||ov.webkitRequestFullscreen||ov.mozRequestFullScreen;
+    if(fn) fn.call(ov);
+  }catch(e){}
+}
+function hideFamily(){
+  document.getElementById('fam-ov').classList.remove('show');
+  try{
+    const fn=document.exitFullscreen||document.webkitExitFullscreen||document.mozCancelFullScreen;
+    if(fn) fn.call(document);
+  }catch(e){}
+}
+
+// ── Nurse ──────────────────────────────────────────────────────────────────────
+function callNurse(){
+  document.getElementById('nurse-flash').classList.add('show');
+  try{navigator.vibrate([600,200,600,200,600]);}catch(e){}
+}
+function dismissNurse(){ document.getElementById('nurse-flash').classList.remove('show'); }
+
+// ── Edit mode ──────────────────────────────────────────────────────────────────
+function toggleEdit(){
+  editOn=!editOn;
+  const btn=document.getElementById('edit-btn');
+  btn.textContent=editOn?'✅ Done':'✏️ Edit';
+  btn.classList.toggle('on',editOn);
+  document.getElementById('edit-banner').classList.toggle('show',editOn);
+  if(curTab!=='abc') render();
+}
+
+// ── Modal ──────────────────────────────────────────────────────────────────────
+function openEdit(tab,idx){
+  const p=phrases[tab][idx];
+  modalCtx={tab,idx};
+  document.getElementById('modal-title').textContent='Edit phrase';
+  document.getElementById('mi-icon').value=p.i;
+  document.getElementById('mi-text').value=p.t;
+  showModal();
+}
+function openAdd(tab){
+  modalCtx={tab,idx:null};
+  document.getElementById('modal-title').textContent='Add new phrase';
+  document.getElementById('mi-icon').value='';
+  document.getElementById('mi-text').value='';
+  showModal();
+  setTimeout(()=>document.getElementById('mi-icon').focus(),150);
+}
+function showModal(){
+  document.getElementById('mi-text').style.borderColor='';
+  document.getElementById('modal-bg').classList.add('show');
+  setTimeout(()=>document.getElementById('mi-text').focus(),150);
+}
+function closeModal(){
+  document.getElementById('modal-bg').classList.remove('show');
+  modalCtx=null;
+}
+function saveModal(){
+  const icon=document.getElementById('mi-icon').value.trim()||'💬';
+  const text=document.getElementById('mi-text').value.trim();
+  if(!text){
+    document.getElementById('mi-text').style.borderColor='#E53935';
+    document.getElementById('mi-text').focus();
+    return;
+  }
+  const{tab,idx}=modalCtx;
+  if(idx===null){
+    phrases[tab].push({i:icon,t:text});
+  } else {
+    if(curMsg===phrases[tab][idx].t){ curMsg=text; updateBar(); }
+    phrases[tab][idx]={i:icon,t:text};
+  }
+  save();
+  closeModal();
+  render();
+}
+function delPhrase(tab,idx){
+  const p=phrases[tab][idx];
+  if(!confirm(`Delete "${p.t}"?`)) return;
+  if(curMsg===p.t){ curMsg=''; updateBar(); }
+  phrases[tab].splice(idx,1);
+  save();
+  render();
+}
+
+// ── Util ───────────────────────────────────────────────────────────────────────
+function esc(s){
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+</script>
+</body>
+</html>
