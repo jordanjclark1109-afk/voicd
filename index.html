@@ -96,12 +96,18 @@ body{
 }
 #tabs::-webkit-scrollbar{display:none}
 .tab{
-  flex:1;min-width:68px;padding:13px 6px 11px;border:none;background:transparent;
-  font-size:13px;font-weight:700;color:#9A8A78;cursor:pointer;
-  border-bottom:3px solid transparent;white-space:nowrap;
+  flex:1;min-width:62px;padding:7px 5px 8px;border:none;background:transparent;
+  cursor:pointer;border-bottom:3px solid transparent;white-space:nowrap;
   transition:color 0.15s,background 0.15s;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
 }
-.tab.active{color:#E8704A;border-bottom-color:#E8704A;background:rgba(255,255,255,0.65)}
+.tab.active{border-bottom-color:#E8704A;background:rgba(255,255,255,0.65)}
+/* tab number — always visible, accent colour when active */
+.tn{font-size:24px;font-weight:900;line-height:1;color:#9A8878}
+.tab.active .tn{color:#E8704A}
+/* tab label */
+.tl{font-size:11px;font-weight:700;line-height:1;color:#9A8A78}
+.tab.active .tl{color:#E8704A}
 
 /* ── Content ─────────────────────────────────────────────── */
 #content{
@@ -109,7 +115,7 @@ body{
   padding:14px;display:flex;flex-direction:column;
 }
 
-/* ── Phrase grid ─────────────────────────────────────────── */
+/* ── Phrase / word grid ──────────────────────────────────── */
 .grid{
   flex:1;display:grid;
   grid-template-columns:repeat(2,1fr);
@@ -118,8 +124,9 @@ body{
 .pcard{position:relative;height:100%}
 
 .pbtn{
+  position:relative;
   background:#fff;border:2px solid #E0CEBC;border-radius:16px;
-  padding:16px 10px;display:flex;flex-direction:column;
+  padding:16px 10px 14px;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:10px;cursor:pointer;
   min-height:110px;height:100%;width:100%;
   box-shadow:0 2px 6px rgba(0,0,0,0.06);
@@ -131,6 +138,17 @@ body{
   box-shadow:0 4px 14px rgba(232,112,74,0.25);
 }
 .edit-mode .pbtn:active{background:#E8F4FD;border-color:#4A90D9}
+
+/* button number badge — top-left corner, solid pill */
+.pnum{
+  position:absolute;top:8px;left:8px;
+  min-width:28px;height:28px;padding:0 7px;
+  border-radius:14px;background:#E8704A;
+  color:#fff;font-size:15px;font-weight:900;
+  line-height:28px;text-align:center;
+  pointer-events:none;
+}
+
 .pi{font-size:36px;line-height:1}
 .pt{font-size:14px;font-weight:600;color:#2A2D3E;text-align:center;line-height:1.3}
 
@@ -155,33 +173,6 @@ body{
   width:100%;color:#E8704A;font-size:14px;font-weight:700;font-family:inherit;
 }
 .add-icon{font-size:30px}
-
-/* ── Keyboard ─────────────────────────────────────────────── */
-#kb{display:flex;flex-direction:column;gap:9px;user-select:none;-webkit-user-select:none}
-
-.qw-row{display:flex;gap:7px;flex-wrap:wrap}
-.qw{
-  flex:1;min-width:60px;padding:15px 4px;
-  background:#E8F4FD;border:2px solid #4A90D9;border-radius:12px;
-  font-size:15px;font-weight:800;color:#2E6FAE;cursor:pointer;
-  text-align:center;font-family:inherit;
-}
-.qw:active{background:#C4DCF0}
-
-.kb-row{display:flex;gap:5px;justify-content:center}
-.k{
-  flex:1;min-width:0;max-width:72px;height:68px;
-  background:#fff;border:2px solid #D8CBB8;border-radius:11px;
-  font-size:22px;font-weight:700;color:#2A2D3E;cursor:pointer;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:0 3px 0 #C8BBAA;
-  transition:transform 0.07s,box-shadow 0.07s;
-  font-family:inherit;
-}
-.k:active{transform:translateY(2px);box-shadow:none;background:#F0E8DC}
-.k-space{flex:3;max-width:none;font-size:14px;font-weight:700;color:#8A7A6A}
-.k-back{flex:1.6;max-width:100px;background:#FFF0E8;border-color:#D8CBB8;font-size:24px}
-.k-clr{flex:1.3;max-width:88px;font-size:12px;font-weight:800;color:#E8704A;background:#FFF0E8;border-color:#E8704A}
 
 /* ── Family overlay ───────────────────────────────────────── */
 #fam-ov{
@@ -233,26 +224,23 @@ body{
 .mbtn-s:active{background:#C05A38}
 
 /* ── Responsive ───────────────────────────────────────────── */
-/* Desktop: 3 columns */
 @media(min-width:900px){
   .grid{grid-template-columns:repeat(3,1fr);gap:14px}
   .pi{font-size:42px}
   .pt{font-size:16px}
-  .k{height:76px;font-size:26px}
   #msg{font-size:clamp(24px,3.5vw,36px)}
 }
 @media(max-width:380px){
-  .k{height:58px;font-size:19px}
-  .qw{font-size:13px;padding:12px 4px}
   .pi{font-size:30px}
   .pt{font-size:13px}
+  .pnum{font-size:13px;min-width:24px;height:24px;line-height:24px;padding:0 5px}
+  .tn{font-size:19px}
+  .tl{font-size:10px}
 }
-/* Landscape on small devices: keep 2 cols but squish vertically */
 @media(orientation:landscape)and(max-height:520px){
   .pbtn{min-height:80px;padding:10px 8px}
   .pi{font-size:26px}
   .pt{font-size:12px}
-  .k{height:52px;font-size:18px}
   #out-bar{min-height:56px;padding:7px 12px}
 }
 </style>
@@ -290,12 +278,24 @@ body{
 
 <!-- TABS -->
 <nav id="tabs">
-  <button class="tab active" data-tab="needs">Needs</button>
-  <button class="tab" data-tab="pain">Pain</button>
-  <button class="tab" data-tab="room">Room</button>
-  <button class="tab" data-tab="feelings">Feelings</button>
-  <button class="tab" data-tab="family">Family</button>
-  <button class="tab" data-tab="abc">A B C</button>
+  <button class="tab active" data-tab="needs">
+    <span class="tn">1</span><span class="tl">Needs</span>
+  </button>
+  <button class="tab" data-tab="pain">
+    <span class="tn">2</span><span class="tl">Pain</span>
+  </button>
+  <button class="tab" data-tab="room">
+    <span class="tn">3</span><span class="tl">Room</span>
+  </button>
+  <button class="tab" data-tab="feelings">
+    <span class="tn">4</span><span class="tl">Feelings</span>
+  </button>
+  <button class="tab" data-tab="family">
+    <span class="tn">5</span><span class="tl">Family</span>
+  </button>
+  <button class="tab" data-tab="words">
+    <span class="tn">6</span><span class="tl">Words</span>
+  </button>
 </nav>
 
 <!-- CONTENT -->
@@ -324,7 +324,7 @@ body{
 </div>
 
 <script>
-// ── Default phrases ────────────────────────────────────────────────────────────
+// ── Default data ───────────────────────────────────────────────────────────────
 const DEFAULTS = {
   needs:[
     {i:'💧',t:"I'm thirsty"},
@@ -385,10 +385,51 @@ const DEFAULTS = {
     {i:'⭐',t:"I'm proud of you"},
     {i:'🤫',t:"I need a moment alone"},
   ],
+  words:[
+    {i:'❓',t:'What'},
+    {i:'⏰',t:'When'},
+    {i:'📍',t:'Where'},
+    {i:'👤',t:'Who'},
+    {i:'🤔',t:'Why'},
+    {i:'💭',t:'How'},
+    {i:'🔀',t:'Which'},
+    {i:'📝',t:'The'},
+    {i:'➕',t:'And'},
+    {i:'↔️',t:'Or'},
+    {i:'↩️',t:'But'},
+    {i:'❌',t:'Not'},
+    {i:'🤝',t:'With'},
+    {i:'🚫',t:'Without'},
+    {i:'📌',t:'Is'},
+    {i:'⏮️',t:'Was'},
+    {i:'💪',t:'Can'},
+    {i:'💡',t:'Could'},
+    {i:'☑️',t:'Did'},
+    {i:'👉',t:'Do'},
+    {i:'💗',t:'Want'},
+    {i:'🔔',t:'Need'},
+    {i:'🤲',t:'Have'},
+    {i:'💫',t:'Feel'},
+    {i:'🆘',t:'Help'},
+    {i:'✋',t:'Stop'},
+    {i:'⌛',t:'Wait'},
+    {i:'✅',t:'Yes'},
+    {i:'👎',t:'No'},
+    {i:'🤷',t:'Maybe'},
+    {i:'⬆️',t:'More'},
+    {i:'⬇️',t:'Less'},
+    {i:'🔁',t:'Again'},
+    {i:'⚡',t:'Now'},
+    {i:'⏳',t:'Later'},
+    {i:'🙏',t:'Please'},
+    {i:'😊',t:'Thank you'},
+    {i:'👆',t:'Me'},
+    {i:'🫵',t:'You'},
+    {i:'👩‍⚕️',t:'Nurse'},
+    {i:'🩺',t:'Doctor'},
+    {i:'👨‍👩‍👧',t:'Family'},
+  ],
 };
-
-const KB_ROWS=[['Q','W','E','R','T','Y','U','I','O','P'],['A','S','D','F','G','H','J','K','L'],['Z','X','C','V','B','N','M']];
-const QUICK=['YES','NO','OKAY','PLEASE','SORRY','HELP'];
 
 // ── State ──────────────────────────────────────────────────────────────────────
 let phrases={};
@@ -411,8 +452,6 @@ let modalCtx=null;
   document.querySelectorAll('.tab').forEach(b=>b.addEventListener('click',()=>switchTab(b.dataset.tab)));
   document.getElementById('modal-bg').addEventListener('click',function(e){if(e.target===this)closeModal();});
   document.getElementById('content').addEventListener('click',handleClick);
-
-  // Enter key in modal saves
   document.getElementById('mi-text').addEventListener('keydown',function(e){if(e.key==='Enter')saveModal();});
 
   switchTab('needs');
@@ -431,22 +470,21 @@ function switchTab(tab){
 // ── Render ─────────────────────────────────────────────────────────────────────
 function render(){
   const el=document.getElementById('content');
-  if(curTab==='abc'){
-    el.classList.remove('edit-mode');
-    el.innerHTML=buildKb();
-  } else {
-    el.classList.toggle('edit-mode',editOn);
-    el.innerHTML=buildGrid(curTab);
-  }
+  el.classList.toggle('edit-mode', editOn && curTab!=='words');
+  el.innerHTML=buildGrid(curTab);
 }
 
+// ── Grid builder ───────────────────────────────────────────────────────────────
 function buildGrid(tab){
   const list=phrases[tab]||[];
+  const isWords=(tab==='words');
   let h='<div class="grid">';
   list.forEach((p,i)=>{
-    const sel=(!editOn&&curMsg===p.t)?' sel':'';
+    // Phrase tabs: highlight selected. Words tab: no persistent highlight (append mode).
+    const sel=(!editOn && !isWords && curMsg===p.t)?' sel':'';
     h+=`<div class="pcard">
       <button class="pbtn${sel}" data-a="sel" data-tab="${tab}" data-i="${i}">
+        <span class="pnum">${i+1}</span>
         <span class="pi">${p.i}</span>
         <span class="pt">${esc(p.t)}</span>
       </button>
@@ -456,27 +494,12 @@ function buildGrid(tab){
       </div>
     </div>`;
   });
+  // Add card — shown in edit mode for all tabs including words
   h+=`<div class="pcard add-card">
     <button class="add-btn" data-a="add" data-tab="${tab}">
-      <span class="add-icon">＋</span><span>Add phrase</span>
+      <span class="add-icon">＋</span>
+      <span>Add ${isWords?'word':'phrase'}</span>
     </button>
-  </div></div>`;
-  return h;
-}
-
-function buildKb(){
-  let h='<div id="kb"><div class="qw-row">';
-  QUICK.forEach(w=>{ h+=`<button class="qw" data-a="qw" data-w="${w}">${w}</button>`; });
-  h+='</div>';
-  KB_ROWS.forEach(row=>{
-    h+='<div class="kb-row">';
-    row.forEach(k=>{ h+=`<button class="k" data-a="key" data-k="${k}">${k}</button>`; });
-    h+='</div>';
-  });
-  h+=`<div class="kb-row">
-    <button class="k k-clr" data-a="kclr">CLEAR</button>
-    <button class="k k-space" data-a="key" data-k=" ">SPACE</button>
-    <button class="k k-back" data-a="back">⌫</button>
   </div></div>`;
   return h;
 }
@@ -485,27 +508,42 @@ function buildKb(){
 function handleClick(e){
   const b=e.target.closest('[data-a]');
   if(!b) return;
-  const a=b.dataset.a, tab=b.dataset.tab, idx=b.dataset.i!==undefined?parseInt(b.dataset.i):null;
+  const a=b.dataset.a, tab=b.dataset.tab;
+  const idx=b.dataset.i!==undefined?parseInt(b.dataset.i):null;
+
   if(a==='sel'){
-    if(editOn) openEdit(tab,idx);
-    else select(phrases[tab][idx].t);
+    if(editOn){
+      openEdit(tab,idx);
+    } else if(tab==='words'){
+      // Words tab: append word to current message
+      const word=phrases[tab][idx].t;
+      if(curMsg && !curMsg.endsWith(' ')) curMsg+=' ';
+      curMsg+=word;
+      updateBar();
+      // Brief flash on the button to confirm tap
+      b.classList.add('sel');
+      setTimeout(()=>b.classList.remove('sel'),200);
+    } else {
+      // Phrase tabs: replace message
+      select(phrases[tab][idx].t);
+    }
   } else if(a==='edit') openEdit(tab,idx);
-  else if(a==='del')  delPhrase(tab,idx);
-  else if(a==='add')  openAdd(tab);
-  else if(a==='key'){ curMsg+=b.dataset.k; updateBar(); }
-  else if(a==='qw'){
-    const w=b.dataset.w;
-    if(curMsg&&!curMsg.endsWith(' ')) curMsg+=' ';
-    curMsg+=w; updateBar();
-  }
-  else if(a==='back'){ curMsg=curMsg.slice(0,-1); updateBar(); }
-  else if(a==='kclr') clearMsg();
+  else if(a==='del')    delPhrase(tab,idx);
+  else if(a==='add')    openAdd(tab);
 }
 
 // ── Message ────────────────────────────────────────────────────────────────────
-function select(text){ curMsg=text; updateBar(); render(); }
+function select(text){
+  curMsg=text;
+  updateBar();
+  render(); // re-render to show/clear selection highlight
+}
 
-function clearMsg(){ curMsg=''; updateBar(); if(curTab!=='abc') render(); }
+function clearMsg(){
+  curMsg='';
+  updateBar();
+  render(); // clear any selection highlights
+}
 
 function updateBar(){
   const el=document.getElementById('msg');
@@ -546,21 +584,21 @@ function toggleEdit(){
   btn.textContent=editOn?'✅ Done':'✏️ Edit';
   btn.classList.toggle('on',editOn);
   document.getElementById('edit-banner').classList.toggle('show',editOn);
-  if(curTab!=='abc') render();
+  render();
 }
 
 // ── Modal ──────────────────────────────────────────────────────────────────────
 function openEdit(tab,idx){
   const p=phrases[tab][idx];
   modalCtx={tab,idx};
-  document.getElementById('modal-title').textContent='Edit phrase';
+  document.getElementById('modal-title').textContent='Edit '+(tab==='words'?'word':'phrase');
   document.getElementById('mi-icon').value=p.i;
   document.getElementById('mi-text').value=p.t;
   showModal();
 }
 function openAdd(tab){
   modalCtx={tab,idx:null};
-  document.getElementById('modal-title').textContent='Add new phrase';
+  document.getElementById('modal-title').textContent='Add '+(tab==='words'?'word':'phrase');
   document.getElementById('mi-icon').value='';
   document.getElementById('mi-text').value='';
   showModal();
